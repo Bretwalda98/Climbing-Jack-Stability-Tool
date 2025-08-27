@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Climbing Jack / Stillage Combined Stability</title>
+<style>
+  :root{
+    --bg:#0b1220;         /* deep navy */
+    --panel:#121a2b;      /* card bg */
+    --ink:#e7edf7;        /* primary text */
+    --ink-dim:#b9c4d6;    /* secondary text */
+    --accent:#7cc2ff;     /* cyan */
+    --accent-2:#9ef19d;   /* green */
+    --warn:#ffd166;       /* amber */
+    --danger:#ff6b6b;     /* red */
+    --good:#88ffa0;       /* lime */
+    --grid:#22304a;       /* grid lines */
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:radial-gradient(1200px 800px at 70% -10%, #16233d 0%, var(--bg) 55%);
+    color:var(--ink); font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+  }
+  header{padding:20px 24px 8px}
+  header h1{font-size:20px;margin:0 0 6px 0;font-weight:700;letter-spacing:.2px}
+  header p{margin:0;color:var(--ink-dim)}
+
+  .wrap{display:grid;grid-template-columns:360px 1fr;gap:16px;padding:12px 16px 24px;max-width:1200px;margin:0 auto}
+
+  .card{background:var(--panel);border:1px solid #1e2a44;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .card h2{font-size:14px;font-weight:700;margin:0 0 10px 0;color:var(--ink);letter-spacing:.4px;text-transform:uppercase}
+  .card .hd{padding:12px 14px;border-bottom:1px solid #1f2b46;display:flex;align-items:center;gap:10px}
+  .card .bd{padding:14px}
+
+  .grid{display:grid;grid-template-columns:1fr 120px;gap:8px 10px}
+  label{color:var(--ink-dim)}
+  input, select{width:100%;padding:8px 10px;border-radius:10px;border:1px solid #2a3b60;background:#0d1525;color:var(--ink)}
+  input:focus{outline:2px solid #2e6be6;border-color:#2e6be6}
+  .unit{display:flex;align-items:center;gap:6px}
+  .unit span{opacity:.8}
+
+  .row{display:flex;gap:10px;align-items:center}
+  .row > *{flex:1}
+  .muted{color:var(--ink-dim)}
+  .mono{font-variant-numeric:tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace}
+
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .kpi{background:#0d1525;border:1px solid #263356;border-radius:14px;padding:12px}
+  .kpi h3{margin:0 0 6px 0;font:600 12px/1 var(--font,inherit);color:var(--ink-dim);text-transform:uppercase;letter-spacing:.45px}
+  .kpi .v{font:700 22px/1.15 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+  .kpi small{display:block;margin-top:6px;color:var(--ink-dim)}
+
+  .status{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{padding:6px 10px;border-radius:999px;border:1px solid #2a3b60;background:#0d1525;color:var(--ink-dim);font-weight:600;letter-spacing:.25px}
+  .chip.ok{border-color:#2f6b3d;color:#c1f3c9;background:rgba(25, 100, 40,.18)}
+  .chip.warn{border-color:#705d27;color:#ffe6ae;background:rgba(130,110,35,.18)}
+  .chip.bad{border-color:#6b2f2f;color:#ffd2d2;background:rgba(120,35,35,.18)}
+
+  /* SVG stage */
+  .stage{position:relative;background:linear-gradient(#0d1525,#0c1423);border:1px solid #263356;border-radius:16px;overflow:hidden}
+  .stage .legend{position:absolute;inset:auto 10px 10px auto;background:#0d1525;border:1px solid #263356;border-radius:10px;padding:8px 10px;color:var(--ink-dim)}
+  .stage svg{display:block;width:100%;height:420px;background-image:linear-gradient(transparent 39px, var(--grid) 40px), linear-gradient(90deg, transparent 39px, var(--grid) 40px);background-size:40px 40px, 40px 40px;background-position:0 20px, 20px 0}
+
+  .bars{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .bar{background:#0d1525;border:1px solid #263356;border-radius:14px;padding:10px}
+  .bar h4{margin:0 0 6px 0;color:var(--ink-dim)}
+  .bar meter{width:100%}
+
+  details{margin-top:12px;color:var(--ink-dim)}
+  details summary{cursor:pointer}
+  code{background:#0d1525;border:1px solid #2a3b60;padding:1px 6px;border-radius:6px}
+  footer{padding:8px 16px 20px;color:var(--ink-dim)}
+
+  /* Responsive */
+  @media (max-width: 980px){
+    .wrap{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Climbing Jack / Stillage – Combined Stability (Two‑Support Planar Model)</h1>
+    <p>Real‑time calculator and infographic. <strong>MUST BE CHECKED BY COMPETENT PERSONS</strong> before use.</p>
+  </header>
+
+  <div class="wrap">
+    <!-- Inputs -->
+    <section class="card" aria-label="Inputs">
+      <div class="hd"><h2>Inputs</h2></div>
+      <div class="bd">
+        <div class="grid" style="margin-bottom:8px">
+          <label for="L">Base length L</label>
+          <div class="unit"><input id="L" type="number" step="0.001" value="1.22"><span>m</span></div>
+
+          <label for="x1">x₁ (A to CG)</label>
+          <div class="unit"><input id="x1" type="number" step="0.001" value="0.61"><span>m</span></div>
+
+          <label for="x2">x₂ (CG to B)</label>
+          <div class="unit"><input id="x2" type="number" step="0.001" value="0.61"><span>m</span></div>
+
+          <label for="Z">Height Z</label>
+          <div class="unit"><input id="Z" type="number" step="0.01" value="4.04"><span>m</span></div>
+
+          <label for="FV">Vertical load F<sub>V</sub></label>
+          <div class="unit"><input id="FV" type="number" step="0.01" value="66.7"><span>t</span></div>
+
+          <label for="side">Side‑force % of F<sub>V</sub></label>
+          <div class="unit"><input id="side" type="number" step="0.1" value="10"><span>%</span></div>
+
+          <label for="A">Wind area A</label>
+          <div class="unit"><input id="A" type="number" step="0.01" value="73"><span>m²</span></div>
+
+          <label for="Cd">Drag coefficient C<sub>d</sub></label>
+          <div class="unit"><input id="Cd" type="number" step="0.01" value="1.2"><span>–</span></div>
+
+          <label for="rho">Air density ρ</label>
+          <div class="unit"><input id="rho" type="number" step="0.001" value="1.228"><span>kg/m³</span></div>
+
+          <label for="V">Wind speed V</label>
+          <div class="unit"><input id="V" type="number" step="0.1" value="14"><span>m/s</span></div>
+
+          <label for="Ns">Supports sharing wind</label>
+          <div class="unit"><input id="Ns" type="number" step="1" value="2" min="1"><span>no.</span></div>
+        </div>
+        <div class="row">
+          <button id="reset" type="button" style="flex:0 0 auto;padding:8px 12px;border-radius:10px;border:1px solid #2a3b60;background:#0d1525;color:var(--ink)">Reset</button>
+          <div class="muted">Units: inputs in m, t, m/s. Internals use N and m.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Visual + Results -->
+    <section class="card" aria-label="Infographic and Results">
+      <div class="hd"><h2>Model & Results</h2></div>
+      <div class="bd">
+        <div class="kpis">
+          <div class="kpi"><h3>ΣH = F<sub>S</sub> + F<sub>W</sub></h3><div class="v mono" id="sumH">–</div><small>N</small></div>
+          <div class="kpi"><h3>R<sub>A</sub>, R<sub>B</sub></h3><div class="v mono" id="reactions">–</div><small>N (compression; negative = uplift)</small></div>
+          <div class="kpi"><h3>Stability % (RB/B<sub>vert</sub>)</h3><div class="v mono" id="stability">–</div><small>Uplift at ≤ 0%</small></div>
+        </div>
+
+        <div class="status" style="margin:12px 0 14px">
+          <div class="chip" id="chip-uplift">Uplift check</div>
+          <div class="chip" id="chip-fos">FoS overturning</div>
+        </div>
+
+        <div class="stage">
+          <svg viewBox="0 0 720 420" id="svg">
+            <!-- dynamic content injected by JS -->
+          </svg>
+          <div class="legend mono" id="legend">–</div>
+        </div>
+
+        <div class="bars" style="margin-top:12px">
+          <div class="bar"><h4>Windward A reaction</h4>
+            <meter id="barA" min="0" max="1" value="0"></meter>
+          </div>
+          <div class="bar"><h4>Leeward B reaction</h4>
+            <meter id="barB" min="0" max="1" value="0"></meter>
+          </div>
+        </div>
+
+        <details>
+          <summary>Equations used</summary>
+          <p><strong>Vertical load:</strong> <code>Fv = FV[t] × 1000 × 9.81</code></p>
+          <p><strong>Side‑force:</strong> <code>FS = Fv × side%/100</code></p>
+          <p><strong>Wind per support:</strong> <code>FW = 0.5 × Cd × A × ρ × V² / N</code></p>
+          <p><strong>Vertical reactions (from Fv only):</strong> <code>R_A,vert = Fv × x₂ / L</code>, <code>R_B,vert = Fv × x₁ / L</code></p>
+          <p><strong>Couple from lateral at height Z:</strong> <code>ΔR = (FS+FW) × Z / L</code></p>
+          <p><strong>Final reactions:</strong> <code>R_A = R_A,vert + ΔR</code>, <code>R_B = R_B,vert − ΔR</code></p>
+          <p><strong>Stability %:</strong> <code>RB / R_B,vert × 100</code>; <strong>FoS (informal):</strong> <code>(Fv × min(x₁,x₂)) / ((FS+FW) × Z)</code></p>
+        </details>
+      </div>
+    </section>
+  </div>
+
+  <footer class="muted">
+    This tool implements a two‑support planar overturning model. It does not check sliding, ground bearing, structural member capacity, or dynamic stepping. Use within a controlled procedure and have a competent person verify calculations and limits.
+  </footer>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const inputs = ["L","x1","x2","Z","FV","side","A","Cd","rho","V","Ns"];  
+  inputs.forEach(id => $(id).addEventListener('input', recalc));
+  $("reset").addEventListener('click', () => { 
+    const defaults = {L:1.22,x1:0.61,x2:0.61,Z:4.04,FV:66.7,side:10,A:73,Cd:1.2,rho:1.228,V:14,Ns:2};
+    for(const k in defaults){ $(k).value = defaults[k]; }
+    recalc();
+  });
+
+  function nf(x, digits=0){
+    if(!isFinite(x)) return "–";
+    return new Intl.NumberFormat(undefined,{maximumFractionDigits:digits}).format(x);
+  }
+
+  function recalc(){
+    const L = +$("L").value || 0.0001;
+    const x1 = +$("x1").value || 0;  // A->CG
+    const x2 = +$("x2").value || 0;  // CG->B
+    const Z = Math.max(+$("Z").value || 0, 0.0001);
+    const FVt = +$("FV").value || 0;
+    const side = +$("side").value || 0;
+    const A = +$("A").value || 0;
+    const Cd = +$("Cd").value || 0;
+    const rho = +$("rho").value || 0;
+    const V = +$("V").value || 0;
+    const Ns = Math.max(+$("Ns").value || 1, 1);
+
+    // Core formulas for the two‑support model
+    const Fv = FVt * 1000 * 9.81;              // N
+    const FS = Fv * (side/100);                // N
+    const FW = 0.5 * Cd * A * rho * V*V / Ns;  // N per support
+    const sumH = FS + FW;                      
+
+    const RA_vert = Fv * (x2 / L);
+    const RB_vert = Fv * (x1 / L);
+    const dR = sumH * (Z / L);
+    const RA = RA_vert + dR;
+    const RB = RB_vert - dR;
+
+    const stability_pct = RB_vert !== 0 ? (RB / RB_vert) * 100 : NaN;
+    const FoS = (sumH>0) ? (Fv * Math.min(x1,x2)) / (sumH * Z) : Infinity;
+
+    // KPIs
+    $("sumH").textContent = nf(sumH,0);
+    $("reactions").textContent = `${nf(RA,0)}  /  ${nf(RB,0)}`;
+    $("stability").textContent = isFinite(stability_pct) ? nf(stability_pct,2) + ' %' : '–';
+
+    // Chips
+    const chipU = $("chip-uplift");
+    chipU.textContent = RB >= 0 ? "No uplift at B" : "Uplift at B";
+    chipU.className = "chip " + (RB >= 0 ? "ok" : "bad");
+
+    const chipF = $("chip-fos");
+    const fosTxt = (FoS===Infinity)?"No side load":"FoS = " + nf(FoS,3);
+    chipF.textContent = fosTxt;
+    chipF.className = "chip " + (FoS>=1.5 ? "ok" : (FoS>=1.2?"warn":"bad"));
+
+    // Bars (normalize to Fv for a visual feel)
+    $("barA").value = Math.max(0, Math.min(1, RA / (Fv || 1)));
+    $("barB").value = Math.max(0, Math.min(1, Math.max(0,RB) / (Fv || 1)));
+
+    drawSVG({L,x1,x2,Z,Fv,FS,FW,sumH,RA,RB,RA_vert,RB_vert});
+  }
+
+  function drawSVG(m){
+    const svg = $("svg");
+    // Clear
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+
+    // Layout scales
+    const margin = {l:40, r:20, t:20, b:40};
+    const width = 720 - margin.l - margin.r;
+    const height = 420 - margin.t - margin.b;
+    const baseY = margin.t + height - 20;
+
+    // Scales for geometry
+    const pxX = width / Math.max(m.L, 0.5);
+    const pxY = (height-40) / Math.max(m.Z, 0.5);
+
+    const xA = margin.l;
+    const xB = xA + m.L * pxX;
+    const xCG = xA + m.x1 * pxX;
+    const yTop = baseY - m.Z * pxY;
+
+    // helpers
+    const NS = "http://www.w3.org/2000/svg";
+    const add = (tag, attrs) => { const el = document.createElementNS(NS, tag); for(const k in attrs){ el.setAttribute(k, attrs[k]); } svg.appendChild(el); return el; };
+
+    // Ground/base
+    add('rect',{x:margin.l-20,y:baseY+8,width:width+40,height:10,fill:'#3a4766',opacity:.6});
+    add('line',{x1:xA,y1:baseY,x2:xB,y2:baseY,stroke:'#7cc2ff','stroke-width':3});
+
+    // Supports A and B (triangles)
+    const supW = 22, supH = 18;
+    const tri = (cx,color) => {
+      const p = `${cx},${baseY-supH} ${cx-supW/2},${baseY} ${cx+supW/2},${baseY}`;
+      add('polygon',{points:p,fill:color,stroke:'#0b1220','stroke-width':1});
+    };
+    tri(xA, '#9ef19d'); tri(xB, m.RB>=0 ? '#9ef19d' : '#ff6b6b');
+
+    // Base dimension labels
+    add('text',{x:xA, y:baseY+32, fill:'#b9c4d6','font-size':12}); svg.lastChild.textContent = 'A';
+    add('text',{x:xB-6, y:baseY+32, fill:'#b9c4d6','font-size':12}); svg.lastChild.textContent = 'B';
+
+    // x1, x2, L dimension lines
+    const dim = (x1,x2, y, label) => {
+      add('line',{x1:x1,y1:y,x2:x2,y2:y,stroke:'#6a7aa2','stroke-width':2});
+      add('line',{x1:x1,y1:y-5,x2:x1,y2:y+5,stroke:'#6a7aa2'});
+      add('line',{x1:x2,y1:y-5,x2:x2,y2:y+5,stroke:'#6a7aa2'});
+      add('text',{x:(x1+x2)/2 - 8, y:y-6, fill:'#b9c4d6','font-size':12}); svg.lastChild.textContent = label;
+    };
+    dim(xA, xCG, baseY-6, `x1=${m.x1.toFixed(2)} m`);
+    dim(xCG, xB, baseY-22, `x2=${m.x2.toFixed(2)} m`);
+    dim(xA, xB, baseY-38, `L=${m.L.toFixed(2)} m`);
+
+    // Column / jack stack
+    const colW = 40;
+    add('rect',{x:xCG-colW/2,y:yTop,width:colW,height:(baseY-yTop),fill:'#22304a',stroke:'#7cc2ff','stroke-width':2,rx:6});
+
+    // Vertical load arrow at CG (down)
+    const vLen = 40;
+    add('line',{x1:xCG,y1:yTop-20,x2:xCG,y2:yTop+2,stroke:'#9ef19d','stroke-width':3});
+    add('polygon',{points:`${xCG},${yTop-20} ${xCG-6},${yTop-8} ${xCG+6},${yTop-8}` ,fill:'#9ef19d'});
+    add('text',{x:xCG+8,y:yTop-24,fill:'#c9fcd1','font-size':12}); svg.lastChild.textContent = 'Fv';
+
+    // Horizontal side+wind at top (leftwards)
+    let hLen = 60 + Math.min(220, (m.sumH / (m.Fv||1)) * 240); // scaled to Fv
+    add('line',{x1:xCG,y1:yTop,x2:xCG-hLen,y2:yTop,stroke:'#ffd166','stroke-width':3});
+    add('polygon',{points:`${xCG-hLen},${yTop} ${xCG-hLen+10},${yTop-6} ${xCG-hLen+10},${yTop+6}`, fill:'#ffd166'});
+    add('text',{x:xCG-hLen-6,y:yTop-8,fill:'#ffd166','font-size':12,'text-anchor':'end'}); svg.lastChild.textContent = 'FS + FW';
+
+    // Height Z dimension
+    add('line',{x1:xB+24,y1:baseY,x2:xB+24,y2:yTop,stroke:'#6a7aa2','stroke-width':2});
+    add('polygon',{points:`${xB+24},${yTop} ${xB+18},${yTop+10} ${xB+30},${yTop+10}`,fill:'#6a7aa2'});
+    add('polygon',{points:`${xB+24},${baseY} ${xB+18},${baseY-10} ${xB+30},${baseY-10}`,fill:'#6a7aa2'});
+    add('text',{x:xB+30,y:(baseY+yTop)/2,fill:'#b9c4d6','font-size':12,transform:`rotate(-90 ${xB+30} ${(baseY+yTop)/2})`}); svg.lastChild.textContent = `Z=${m.Z.toFixed(2)} m`;
+
+    // Reactions arrows at supports
+    const rScale = 120 / (m.Fv || 1);
+    const rALen = Math.max(6, Math.abs(m.RA) * rScale);
+    const rBLen = Math.max(6, Math.abs(m.RB) * rScale);
+
+    const react = (x,len,ok) => {
+      const y1 = baseY, y2 = baseY - len;
+      add('line',{x1:x,y1:y1,x2:x,y2:y2,stroke: ok? '#9ef19d':'#ff6b6b','stroke-width':3});
+      add('polygon',{points:`${x},${y2} ${x-6},${y2+10} ${x+6},${y2+10}`, fill:ok? '#9ef19d':'#ff6b6b'});
+    };
+    react(xA, rALen, true);
+    react(xB, rBLen, m.RB>=0);
+
+    // Legend
+    $("legend").textContent = `Fv=${(m.Fv/1000).toFixed(1)} kN · FS=${(m.FS/1000).toFixed(1)} kN · FW=${(m.FW/1000).toFixed(1)} kN/support`;
+  }
+
+  // initial
+  recalc();
+})();
+</script>
+</body>
+</html>
